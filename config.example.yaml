@@ -1,0 +1,9 @@
+---
+webhook_url: https://discord.com/api/webhooks/.../...
+files:
+  - filename: file1.txt
+    regex: ^\d{4}-\d{2}-\d{2}$
+  - filename: file2.txt
+    regex: ^\w+\s\w+$
+  - filename: file3.txt
+    regex: ERROR.*

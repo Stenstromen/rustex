@@ -1,0 +1,127 @@
+name: RustEx CI
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            arch: x86_64
+            name: Darwin_x86_64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            arch: arm64
+            name: Darwin_arm64
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            arch: x86_64
+            name: Linux_x86_64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install libssl-dev (Linux x86_64)
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: sudo apt-get update && sudo apt-get install -y libssl-dev
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+
+      - name: Build binary
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+
+      - name: Package binary
+        run: |
+          tar -czvf rustex_${{ matrix.name }}.tar.gz -C ./target/${{ matrix.target }}/release rustex
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustex_${{ matrix.name }}.tar.gz
+          path: rustex_${{ matrix.name }}.tar.gz
+
+  checksum:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      VERSIONTAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Generate checksums
+        run: |
+          for file in artifacts/*.tar.gz/*.tar.gz; do
+            sha256sum "$file" | awk '{gsub(/.*\//, "", $2); print $1 "  " $2}' >> rustex_${{ env.VERSIONTAG }}_checksums.txt
+          done
+
+      - name: Upload checksum file
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustex_${{ env.VERSIONTAG }}_checksums.txt
+          path: rustex_${{ env.VERSIONTAG }}_checksums.txt
+
+  upload-release-assets:
+    needs: [build, checksum]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+    
+      - name: Upload Release Checksums
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./artifacts/rustex_${{ github.event.release.tag_name }}_checksums.txt/rustex_${{ github.event.release.tag_name }}_checksums.txt
+          asset_name: rustex_${{ github.event.release.tag_name }}_checksums.txt
+          asset_content_type: text/plain
+
+      - name: Upload Darwin x86_64 Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./artifacts/rustex_Darwin_x86_64.tar.gz/rustex_Darwin_x86_64.tar.gz
+          asset_name: rustex_Darwin_x86_64.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Darwin arm64 Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./artifacts/rustex_Darwin_arm64.tar.gz/rustex_Darwin_arm64.tar.gz
+          asset_name: rustex_Darwin_arm64.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Linux x86_64 Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./artifacts/rustex_Linux_x86_64.tar.gz/rustex_Linux_x86_64.tar.gz
+          asset_name: rustex_Linux_x86_64.tar.gz
+          asset_content_type: application/gzip
