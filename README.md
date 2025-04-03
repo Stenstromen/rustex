@@ -12,6 +12,9 @@ Perfect for monitoring logs or other text files.
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Installation](#installation)
+    - [SystemD Service](#systemd-service)
+    - [Manual](#manual)
+    - [Compile from Source](#compile-from-source)
   - [Usage](#usage)
   - [Discord](#discord)
 
@@ -23,8 +26,25 @@ Perfect for monitoring logs or other text files.
 
 ## Installation
 
+### SystemD Service
+
+See [INSTALL.md](./INSTALL.md) for installation instructions.
+
+Tested on:
+
+- Ubuntu 22.04
+- Ubuntu 24.04
+
+### Manual
+
 1. Fetch the latest release from the [Releases](https://github.com/stenstromen/rustex/releases/latest) page.
-1. Extract the tarball.
+2. Extract the tarball.
+
+### Compile from Source
+
+```bash
+cargo build --release
+```
 
 ## Usage
 
