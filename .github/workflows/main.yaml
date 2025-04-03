@@ -100,43 +100,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
-    
-      - name: Upload Release Checksums
-        uses: actions/upload-release-asset@v1
+      
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.3.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./artifacts/rustex_${{ github.event.release.tag_name }}_checksums.txt/rustex_${{ github.event.release.tag_name }}_checksums.txt
-          asset_name: rustex_${{ github.event.release.tag_name }}_checksums.txt
-          asset_content_type: text/plain
-
-      - name: Upload Darwin x86_64 Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./artifacts/rustex_Darwin_x86_64.tar.gz/rustex_Darwin_x86_64.tar.gz
-          asset_name: rustex_Darwin_x86_64.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload Darwin arm64 Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./artifacts/rustex_Darwin_arm64.tar.gz/rustex_Darwin_arm64.tar.gz
-          asset_name: rustex_Darwin_arm64.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload Linux x86_64 Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./artifacts/rustex_Linux_x86_64.tar.gz/rustex_Linux_x86_64.tar.gz
-          asset_name: rustex_Linux_x86_64.tar.gz
-          asset_content_type: application/gzip
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            ./artifacts/rustex_${{ github.event.release.tag_name }}_checksums.txt/rustex_${{ github.event.release.tag_name }}_checksums.txt
+            ./artifacts/rustex_Darwin_x86_64.tar.gz/rustex_Darwin_x86_64.tar.gz
+            ./artifacts/rustex_Darwin_arm64.tar.gz/rustex_Darwin_arm64.tar.gz
+            ./artifacts/rustex_Linux_x86_64.tar.gz/rustex_Linux_x86_64.tar.gz
