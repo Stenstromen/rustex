@@ -8,6 +8,9 @@ permissions:
   contents: write
   actions: read
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -45,14 +48,6 @@ jobs:
           echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
           echo "OPENSSL_LIB_DIR=/usr/local/lib64" >> $GITHUB_ENV
           echo "OPENSSL_INCLUDE_DIR=/usr/local/include" >> $GITHUB_ENV
-
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: ${{ matrix.target }}
-          override: true
 
       - name: Build binary
         run: |
