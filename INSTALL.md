@@ -40,8 +40,7 @@ After running the installer, you'll need to:
 2. Enable and start the service:
 
    ```bash
-   sudo systemctl enable rustex
-   sudo systemctl start rustex
+   sudo systemctl enable rustex --now
    ```
 
 3. Verify that the service is running correctly:
@@ -73,8 +72,7 @@ To remove RustEx:
 
 ```bash
 # Stop and disable the service
-sudo systemctl stop rustex
-sudo systemctl disable rustex
+sudo systemctl disable rustex --now
 
 # Remove the service file
 sudo rm /etc/systemd/system/rustex.service

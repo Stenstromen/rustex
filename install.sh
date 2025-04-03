@@ -48,6 +48,28 @@ fi
 echo -e "${GREEN}Downloading binary from: ${DOWNLOAD_URL}${NC}"
 curl -L "$DOWNLOAD_URL" -o "/tmp/rustex.tar.gz"
 
+# Download and verify checksum
+echo -e "${GREEN}Downloading and verifying checksum...${NC}"
+CHECKSUM_URL=$(curl -s "$LATEST_RELEASE_URL" | grep "browser_download_url" | grep -i "checksums.txt" | cut -d '"' -f 4)
+if [ -z "$CHECKSUM_URL" ]; then
+    echo -e "${RED}Error: Could not find checksum file URL${NC}"
+    exit 1
+fi
+
+curl -L "$CHECKSUM_URL" -o "/tmp/rustex_version_checksums.txt"
+EXPECTED_CHECKSUM=$(grep -i "linux" "/tmp/rustex_version_checksums.txt" | cut -d ' ' -f 1)
+ACTUAL_CHECKSUM=$(sha256sum "/tmp/rustex.tar.gz" | cut -d ' ' -f 1)
+
+if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
+    echo -e "${RED}Error: Checksum verification failed${NC}"
+    echo -e "${RED}Expected: $EXPECTED_CHECKSUM${NC}"
+    echo -e "${RED}Actual:   $ACTUAL_CHECKSUM${NC}"
+    rm -f "/tmp/rustex.tar.gz" "/tmp/rustex_version_checksums.txt"
+    exit 1
+fi
+
+rm -f "/tmp/rustex_version_checksums.txt"
+
 # Extract the binary
 echo -e "${GREEN}Extracting binary...${NC}"
 tar -xzf "/tmp/rustex.tar.gz" -C "/tmp"
