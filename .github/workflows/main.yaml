@@ -49,6 +49,11 @@ jobs:
           echo "OPENSSL_LIB_DIR=/usr/local/lib64" >> $GITHUB_ENV
           echo "OPENSSL_INCLUDE_DIR=/usr/local/include" >> $GITHUB_ENV
 
+      - name: Set up Rust
+        run: |
+          rustup install stable
+          rustup target add ${{ matrix.target }}
+
       - name: Build binary
         run: |
           cargo build --release --target ${{ matrix.target }}
