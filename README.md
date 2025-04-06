@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD036 -->
+
 # RustEx
 
 ![RustEx Logo](./rustex.webp)
@@ -28,7 +29,13 @@ Perfect for monitoring logs or other text files.
 
 ### SystemD Service
 
-See [INSTALL.md](./INSTALL.md) for installation instructions.
+Quick installation:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/stenstromen/rustex/main/install.sh | sudo bash
+```
+
+See [INSTALL.md](./INSTALL.md) for detailed installation instructions.
 
 Tested on:
 
