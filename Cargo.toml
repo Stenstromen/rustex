@@ -1,6 +1,6 @@
 [package]
 name = "rustex"
-version = "1.0.0"
+version = "1.0.5"
 edition = "2024"
 readme = "README.md"
 rust-version = "1.85.1"
