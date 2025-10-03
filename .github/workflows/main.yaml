@@ -54,6 +54,9 @@ jobs:
           rustup install stable
           rustup target add ${{ matrix.target }}
 
+      - name: Run cargo test
+        run: cargo test
+
       - name: Build binary
         run: |
           cargo build --release --target ${{ matrix.target }}
@@ -100,13 +103,13 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           path: ./artifacts
-      
+
       - name: Get release
         id: get_release
         uses: bruceadams/get-release@v1.3.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
