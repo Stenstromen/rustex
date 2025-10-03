@@ -36,46 +36,109 @@ fi
 # Create directory structure
 mkdir -p "$USER_HOME"
 
+# Function to compare versions
+# Returns 0 if version1 < version2, 1 if version1 >= version2
+version_less_than() {
+    # Sort versions and check if first argument is the smallest
+    printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1 | grep -q "^$1$"
+}
+
+# Check if rustex is already installed and get version
+INSTALLED_VERSION=""
+NEEDS_UPDATE=true
+
+if [ -f "$BINARY_PATH" ]; then
+    echo -e "${YELLOW}Existing installation detected at ${BINARY_PATH}${NC}"
+    
+    # Try to get installed version (will fail gracefully for versions < 1.0.8)
+    INSTALLED_VERSION=$("$BINARY_PATH" --version 2>/dev/null || echo "")
+    
+    if [ -n "$INSTALLED_VERSION" ]; then
+        # Extract version number (e.g., "rustex v1.0.7" -> "1.0.7")
+        INSTALLED_VERSION=$(echo "$INSTALLED_VERSION" | sed -n 's/.*v\?\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/p')
+    fi
+    
+    if [ -z "$INSTALLED_VERSION" ]; then
+        echo -e "${YELLOW}Installed version does not support --version flag (pre-1.0.8)${NC}"
+        echo -e "${YELLOW}Will upgrade to latest version${NC}"
+        INSTALLED_VERSION="0.0.0"
+    else
+        echo -e "${GREEN}Installed version: ${INSTALLED_VERSION}${NC}"
+    fi
+fi
+
 # Download the latest release
 echo -e "${GREEN}Fetching latest release information...${NC}"
-DOWNLOAD_URL=$(curl -s "$LATEST_RELEASE_URL" | grep "browser_download_url" | grep -i "linux" | cut -d '"' -f 4)
+LATEST_VERSION=$(curl -s "$LATEST_RELEASE_URL" | grep '"tag_name"' | cut -d '"' -f 4 | sed 's/^v//')
 
-if [ -z "$DOWNLOAD_URL" ]; then
-    echo -e "${RED}Error: Could not find download URL for the latest release${NC}"
+if [ -z "$LATEST_VERSION" ]; then
+    echo -e "${RED}Error: Could not fetch latest version information${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}Downloading binary from: ${DOWNLOAD_URL}${NC}"
-curl -L "$DOWNLOAD_URL" -o "/tmp/rustex.tar.gz"
+echo -e "${GREEN}Latest version available: ${LATEST_VERSION}${NC}"
 
-# Download and verify checksum
-echo -e "${GREEN}Downloading and verifying checksum...${NC}"
-CHECKSUM_URL=$(curl -s "$LATEST_RELEASE_URL" | grep "browser_download_url" | grep -i "checksums.txt" | cut -d '"' -f 4)
-if [ -z "$CHECKSUM_URL" ]; then
-    echo -e "${RED}Error: Could not find checksum file URL${NC}"
-    exit 1
+# Compare versions if we have an installed version
+if [ -n "$INSTALLED_VERSION" ] && [ "$INSTALLED_VERSION" != "0.0.0" ]; then
+    if version_less_than "$INSTALLED_VERSION" "$LATEST_VERSION"; then
+        echo -e "${YELLOW}Upgrade available: ${INSTALLED_VERSION} -> ${LATEST_VERSION}${NC}"
+        echo -e "${GREEN}Proceeding with upgrade...${NC}"
+    else
+        echo -e "${GREEN}Already running the latest version (${INSTALLED_VERSION})${NC}"
+        echo -e "${YELLOW}Skipping download. If you want to reinstall, remove ${BINARY_PATH} first.${NC}"
+        NEEDS_UPDATE=false
+    fi
+else
+    echo -e "${GREEN}Installing version ${LATEST_VERSION}${NC}"
 fi
 
-curl -L "$CHECKSUM_URL" -o "/tmp/rustex_version_checksums.txt"
-EXPECTED_CHECKSUM=$(grep -i "linux" "/tmp/rustex_version_checksums.txt" | cut -d ' ' -f 1)
-ACTUAL_CHECKSUM=$(sha256sum "/tmp/rustex.tar.gz" | cut -d ' ' -f 1)
+# Only download if update is needed
+if [ "$NEEDS_UPDATE" = true ]; then
+    DOWNLOAD_URL=$(curl -s "$LATEST_RELEASE_URL" | grep "browser_download_url" | grep -i "linux" | cut -d '"' -f 4)
 
-if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
-    echo -e "${RED}Error: Checksum verification failed${NC}"
-    echo -e "${RED}Expected: $EXPECTED_CHECKSUM${NC}"
-    echo -e "${RED}Actual:   $ACTUAL_CHECKSUM${NC}"
-    rm -f "/tmp/rustex.tar.gz" "/tmp/rustex_version_checksums.txt"
-    exit 1
+    if [ -z "$DOWNLOAD_URL" ]; then
+        echo -e "${RED}Error: Could not find download URL for the latest release${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}Downloading binary from: ${DOWNLOAD_URL}${NC}"
+    curl -L "$DOWNLOAD_URL" -o "/tmp/rustex.tar.gz"
+
+    # Download and verify checksum
+    echo -e "${GREEN}Downloading and verifying checksum...${NC}"
+    CHECKSUM_URL=$(curl -s "$LATEST_RELEASE_URL" | grep "browser_download_url" | grep -i "checksums.txt" | cut -d '"' -f 4)
+    if [ -z "$CHECKSUM_URL" ]; then
+        echo -e "${RED}Error: Could not find checksum file URL${NC}"
+        exit 1
+    fi
+
+    curl -L "$CHECKSUM_URL" -o "/tmp/rustex_version_checksums.txt"
+    EXPECTED_CHECKSUM=$(grep -i "linux" "/tmp/rustex_version_checksums.txt" | cut -d ' ' -f 1)
+    ACTUAL_CHECKSUM=$(sha256sum "/tmp/rustex.tar.gz" | cut -d ' ' -f 1)
+
+    if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
+        echo -e "${RED}Error: Checksum verification failed${NC}"
+        echo -e "${RED}Expected: $EXPECTED_CHECKSUM${NC}"
+        echo -e "${RED}Actual:   $ACTUAL_CHECKSUM${NC}"
+        rm -f "/tmp/rustex.tar.gz" "/tmp/rustex_version_checksums.txt"
+        exit 1
+    fi
+
+    rm -f "/tmp/rustex_version_checksums.txt"
+
+    # Extract the binary
+    echo -e "${GREEN}Extracting binary...${NC}"
+    tar -xzf "/tmp/rustex.tar.gz" -C "/tmp"
+    cp "/tmp/rustex" "$BINARY_PATH"
+    chmod +x "$BINARY_PATH"
+    rm -f "/tmp/rustex.tar.gz" "/tmp/rustex"
+    
+    # Set proper ownership
+    echo -e "${GREEN}Setting permissions...${NC}"
+    chown -R "$USER_NAME:$USER_NAME" "$USER_HOME"
+else
+    echo -e "${GREEN}Skipping installation - already up to date${NC}"
 fi
-
-rm -f "/tmp/rustex_version_checksums.txt"
-
-# Extract the binary
-echo -e "${GREEN}Extracting binary...${NC}"
-tar -xzf "/tmp/rustex.tar.gz" -C "/tmp"
-cp "/tmp/rustex" "$BINARY_PATH"
-chmod +x "$BINARY_PATH"
-rm -f "/tmp/rustex.tar.gz" "/tmp/rustex"
 
 # Create systemd service file
 echo -e "${GREEN}Creating systemd service file...${NC}"
@@ -96,10 +159,6 @@ RestartSec=5s
 [Install]
 WantedBy=multi-user.target
 EOL
-
-# Set proper ownership
-echo -e "${GREEN}Setting permissions...${NC}"
-chown -R "$USER_NAME:$USER_NAME" "$USER_HOME"
 
 # Reload systemd
 echo -e "${GREEN}Reloading systemd...${NC}"

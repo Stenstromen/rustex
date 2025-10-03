@@ -11,6 +11,13 @@ use tokio::task::spawn;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
+
+    // Check for version flag
+    if args.len() > 1 && (args[1] == "-v" || args[1] == "--version") {
+        println!("rustex v{}", env!("CARGO_PKG_VERSION"));
+        return Ok(());
+    }
+
     let config_path = args.get(1).map(|s| s.as_str()).unwrap_or("config.yaml");
 
     println!("Using config file: {}", config_path);

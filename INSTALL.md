@@ -12,10 +12,40 @@ curl -sSL https://raw.githubusercontent.com/stenstromen/rustex/main/install.sh |
 
 This will:
 
-1. Download the latest RustEx binary
-2. Create a dedicated user for the service
-3. Set up a systemd service
-4. Configure the necessary directories and permissions
+1. Check if RustEx is already installed and compare versions
+2. Download the latest RustEx binary (if needed)
+3. Create a dedicated user for the service
+4. Set up a systemd service
+5. Configure the necessary directories and permissions
+
+**Smart Upgrade:** The install script automatically detects existing installations and only downloads if a newer version is available. It gracefully handles older versions (pre-1.0.8) that don't support version checking.
+
+## Checking Version
+
+To check which version of RustEx is installed:
+
+```bash
+/opt/rustex/rustex --version
+# or
+/opt/rustex/rustex -v
+```
+
+**Note:** Version checking is available starting from v1.0.8.
+
+## Upgrading
+
+To upgrade an existing installation, simply run the install script again:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/stenstromen/rustex/main/install.sh | sudo bash
+```
+
+The script will:
+
+- Detect your current version
+- Compare it with the latest release on GitHub
+- Only download and install if a newer version is available
+- Skip the download if you're already running the latest version
 
 ## Post-Installation
 

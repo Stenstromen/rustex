@@ -17,6 +17,8 @@ Perfect for monitoring logs or other text files.
     - [Manual](#manual)
     - [Compile from Source](#compile-from-source)
   - [Usage](#usage)
+    - [Check Version](#check-version)
+    - [Running](#running)
   - [Discord](#discord)
 
 ## Features
@@ -24,6 +26,7 @@ Perfect for monitoring logs or other text files.
 - Monitor multiple files
 - Regex matching
 - Discord webhook integration
+- Smart version checking and upgrades
 
 ## Installation
 
@@ -34,6 +37,15 @@ Quick installation:
 ```bash
 curl -sSL https://raw.githubusercontent.com/stenstromen/rustex/main/install.sh | sudo bash
 ```
+
+The install script automatically:
+
+- Detects existing installations
+- Compares versions with the latest GitHub release
+- Only downloads if an upgrade is available
+- Gracefully handles older versions (pre-1.0.8)
+
+To upgrade an existing installation, simply run the same command again.
 
 See [INSTALL.md](./INSTALL.md) for detailed installation instructions.
 
@@ -54,6 +66,16 @@ cargo build --release
 ```
 
 ## Usage
+
+### Check Version
+
+```bash
+rustex --version
+# or
+rustex -v
+```
+
+### Running
 
 1. Create a config.yaml file.
 1. Run the application.

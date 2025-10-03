@@ -59,7 +59,7 @@ pub async fn monitor_file(
                 }
             }
 
-            last_position = match file.seek(SeekFrom::Current(0)) {
+            last_position = match file.stream_position() {
                 Ok(pos) => pos,
                 Err(e) => {
                     eprintln!("Error getting current position: {}", e);
