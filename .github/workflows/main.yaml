@@ -131,3 +131,4 @@ jobs:
             ./artifacts/rustex_Darwin_x86_64.tar.gz/rustex_Darwin_x86_64.tar.gz
             ./artifacts/rustex_Darwin_arm64.tar.gz/rustex_Darwin_arm64.tar.gz
             ./artifacts/rustex_Linux_x86_64.tar.gz/rustex_Linux_x86_64.tar.gz
+            ./artifacts/rustex_Linux_arm64.tar.gz/rustex_Linux_arm64.tar.gz
