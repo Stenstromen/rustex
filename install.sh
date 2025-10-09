@@ -21,14 +21,14 @@ LATEST_RELEASE_URL="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
 ARCH=$(uname -m)
 case "$ARCH" in
     x86_64)
-        ARCH_NAME="amd64"
+        ARCH_NAME="x86_64"
         ;;
     aarch64|arm64)
         ARCH_NAME="arm64"
         ;;
     *)
         echo -e "${RED}Error: Unsupported architecture: $ARCH${NC}"
-        echo -e "${RED}Supported architectures: x86_64 (amd64), aarch64 (arm64)${NC}"
+        echo -e "${RED}Supported architectures: x86_64, aarch64 (arm64)${NC}"
         exit 1
         ;;
 esac
