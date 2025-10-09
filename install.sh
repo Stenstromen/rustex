@@ -146,6 +146,15 @@ if [ "$NEEDS_UPDATE" = true ]; then
 
     rm -f "/tmp/rustex_version_checksums.txt"
 
+    # Stop service if it's running (to avoid "Text file busy" error)
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        echo -e "${YELLOW}Stopping ${SERVICE_NAME} service...${NC}"
+        systemctl stop "$SERVICE_NAME"
+        SERVICE_WAS_RUNNING=true
+    else
+        SERVICE_WAS_RUNNING=false
+    fi
+
     # Extract the binary
     echo -e "${GREEN}Extracting binary...${NC}"
     tar -xzf "/tmp/rustex.tar.gz" -C "/tmp"
@@ -183,6 +192,13 @@ EOL
 # Reload systemd
 echo -e "${GREEN}Reloading systemd...${NC}"
 systemctl daemon-reload
+
+# Restart service if it was running before the update
+if [ "${SERVICE_WAS_RUNNING:-false}" = true ]; then
+    echo -e "${GREEN}Restarting ${SERVICE_NAME} service...${NC}"
+    systemctl start "$SERVICE_NAME"
+    echo -e "${GREEN}Service restarted successfully${NC}"
+fi
 
 # Print instructions
 echo -e "\n${GREEN}========== INSTALLATION COMPLETE ==========${NC}"
