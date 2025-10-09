@@ -17,6 +17,24 @@ SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 GITHUB_REPO="stenstromen/rustex"
 LATEST_RELEASE_URL="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
 
+# Detect system architecture
+ARCH=$(uname -m)
+case "$ARCH" in
+    x86_64)
+        ARCH_NAME="amd64"
+        ;;
+    aarch64|arm64)
+        ARCH_NAME="aarch64"
+        ;;
+    *)
+        echo -e "${RED}Error: Unsupported architecture: $ARCH${NC}"
+        echo -e "${RED}Supported architectures: x86_64 (amd64), aarch64 (arm64)${NC}"
+        exit 1
+        ;;
+esac
+
+echo -e "${GREEN}Detected architecture: ${ARCH} (${ARCH_NAME})${NC}"
+
 # Check if running as root
 if [ "$(id -u)" -ne 0 ]; then
     echo -e "${RED}Error: This script must be run as root${NC}"
@@ -94,14 +112,16 @@ fi
 
 # Only download if update is needed
 if [ "$NEEDS_UPDATE" = true ]; then
-    DOWNLOAD_URL=$(curl -s "$LATEST_RELEASE_URL" | grep "browser_download_url" | grep -i "linux" | cut -d '"' -f 4)
+    DOWNLOAD_URL=$(curl -s "$LATEST_RELEASE_URL" | grep "browser_download_url" | grep -i "linux" | grep -i "$ARCH_NAME" | cut -d '"' -f 4)
 
     if [ -z "$DOWNLOAD_URL" ]; then
-        echo -e "${RED}Error: Could not find download URL for the latest release${NC}"
+        echo -e "${RED}Error: Could not find download URL for ${ARCH_NAME} architecture${NC}"
+        echo -e "${RED}Please check if a release is available for your architecture at:${NC}"
+        echo -e "${RED}https://github.com/${GITHUB_REPO}/releases${NC}"
         exit 1
     fi
 
-    echo -e "${GREEN}Downloading binary from: ${DOWNLOAD_URL}${NC}"
+    echo -e "${GREEN}Downloading binary for ${ARCH_NAME} from: ${DOWNLOAD_URL}${NC}"
     curl -L "$DOWNLOAD_URL" -o "/tmp/rustex.tar.gz"
 
     # Download and verify checksum
@@ -113,7 +133,7 @@ if [ "$NEEDS_UPDATE" = true ]; then
     fi
 
     curl -L "$CHECKSUM_URL" -o "/tmp/rustex_version_checksums.txt"
-    EXPECTED_CHECKSUM=$(grep -i "linux" "/tmp/rustex_version_checksums.txt" | cut -d ' ' -f 1)
+    EXPECTED_CHECKSUM=$(grep -i "linux" "/tmp/rustex_version_checksums.txt" | grep -i "$ARCH_NAME" | cut -d ' ' -f 1)
     ACTUAL_CHECKSUM=$(sha256sum "/tmp/rustex.tar.gz" | cut -d ' ' -f 1)
 
     if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then

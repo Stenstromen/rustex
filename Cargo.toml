@@ -1,9 +1,9 @@
 [package]
 name = "rustex"
-version = "1.0.8"
+version = "1.0.9"
 edition = "2024"
 readme = "README.md"
-rust-version = "1.85.1"
+rust-version = "1.90.0"
 homepage = "https://github.com/stenstromen/rustex"
 repository = "https://github.com/stenstromen/rustex"
 description = "A simple Rust application that monitors files for changes and sends them to a Discord webhook."
