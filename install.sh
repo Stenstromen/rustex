@@ -24,7 +24,7 @@ case "$ARCH" in
         ARCH_NAME="amd64"
         ;;
     aarch64|arm64)
-        ARCH_NAME="aarch64"
+        ARCH_NAME="arm64"
         ;;
     *)
         echo -e "${RED}Error: Unsupported architecture: $ARCH${NC}"
