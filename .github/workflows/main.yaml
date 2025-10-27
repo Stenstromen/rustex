@@ -94,7 +94,7 @@ jobs:
           tar -czvf rustex_${{ matrix.name }}.tar.gz -C ./target/${{ matrix.target }}/release rustex
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: rustex_${{ matrix.name }}.tar.gz
           path: rustex_${{ matrix.name }}.tar.gz
@@ -118,7 +118,7 @@ jobs:
           done
 
       - name: Upload checksum file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: rustex_${{ env.VERSIONTAG }}_checksums.txt
           path: rustex_${{ env.VERSIONTAG }}_checksums.txt
